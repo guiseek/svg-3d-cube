@@ -6,8 +6,10 @@ export class Cube {
   vertices: Point3[]
   faces: Faces[]
 
-  constructor({ x, y, z }: Point3, public size: number) {
+  constructor(public center: Point3, public size: number) {
     const d = size / 2
+
+    const { x, y, z } = center
 
     this.vertices = [
       new Point3(x - d, y - d, z + d),

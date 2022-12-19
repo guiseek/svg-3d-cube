@@ -1,5 +1,4 @@
-import { mouseEventToCoord } from '../mappers/mouse-event-to-coord'
-import { touchEventToCoord } from '../mappers/touch-event-to-coord'
+import { touchEventToCoord, mouseEventToCoord } from '../mappers'
 import { fromEvent, map, merge } from 'rxjs'
 
 export function fromEvents(domItem: Element) {

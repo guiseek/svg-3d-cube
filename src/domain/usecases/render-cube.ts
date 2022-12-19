@@ -1,12 +1,16 @@
-import { project } from '../utilities/project'
-import { Faces } from '../types/faces'
-import { Point3 } from './point3'
+import { point3ToPoint2 } from '../mappers'
+import { Faces } from '../../types/faces'
+import { Point3 } from '../../core'
 
-export class Cube {
+export class RenderCube {
   vertices: Point3[]
   faces: Faces[]
 
-  constructor(public center: Point3, public size: number) {
+  constructor(
+    public container: SVGElement,
+    public center: Point3,
+    public size: number
+  ) {
     const d = size / 2
 
     const { x, y, z } = center
@@ -34,19 +38,19 @@ export class Cube {
     ]
   }
 
-  render(container: SVGElement, dx: number, dy: number) {
-    container.innerHTML = ''
+  execute(dx: number, dy: number) {
+    this.container.innerHTML = ''
     this.faces.forEach((face) => {
-      const point = project(face[0])
+      const point = point3ToPoint2(face[0])
       let str = `<path d="M${point.x + dx} ${-point.y + dy}`
 
-      face.map(project).forEach((point) => {
+      face.map(point3ToPoint2).forEach((point) => {
         str += ` L ${point.x + dx} ${-point.y + dy}`
       })
 
       str += ` Z" fill="rgba(2, 255, 12, 0.4)" stroke-width="3" stroke-linecap="round" stroke="rgba(0, 0, 0, .2)">`
 
-      container.innerHTML += str
+      this.container.innerHTML += str
     })
   }
 }

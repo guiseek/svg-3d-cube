@@ -1,83 +1,64 @@
-import { rotate, query } from './utilities'
-import { Point3, Cube } from './core'
-import { DragEvent } from './domain'
+import { DragEvent, RenderCube, Rotate } from './domain'
+import { query } from './utilities'
+import { Point3 } from './core'
 import './style.scss'
 
-const svgElement = query('svg')
+const element = query('svg')
 
 onload = () => {
-  if (svgElement) {
-    const drag = new DragEvent(svgElement)
+  if (element) {
+    const { events } = new DragEvent(element)
 
-    drag.execute().subscribe(console.log)
+    const dx = element.width.baseVal.value / 2
+    const dy = element.height.baseVal.value / 2
 
-    const dx = svgElement.width.baseVal.value / 2
-    const dy = svgElement.height.baseVal.value / 2
-
+    const rotate = new Rotate()
     const center = new Point3(0, dy, 0)
-    const cube = new Cube(center, dy)
+    const render = new RenderCube(element, center, dy)
 
     const mouse = { down: false, x: 0, y: 0 }
 
     const tick = () => {
       for (let i = 0, ii = 8; i < ii; i++) {
-        rotate(cube.vertices[i], center, Math.PI / 466, Math.PI / 666)
+        rotate.execute(render.vertices[i], center, Math.PI / 466, Math.PI / 666)
       }
 
-      cube.render(svgElement, dx, dy)
+      render.execute(dx, dy)
 
       if (!mouse.down) {
         requestAnimationFrame(tick)
       }
     }
 
-    cube.render(svgElement, dx, dy)
+    render.execute(dx, dy)
 
-    svgElement.onmousedown = (e) => {
+    events.starts.subscribe((start) => {
       mouse.down = true
-      mouse.x = e.clientX
-      mouse.y = e.clientY
-    }
+      mouse.x = start.x
+      mouse.y = start.y
+    })
 
-    svgElement.ontouchmove = (e) => {
+    events.moves.subscribe((move) => {
       if (mouse.down) {
-        const theta = ((e.touches[0].clientX - mouse.x) * Math.PI) / 360
-        const phi = ((e.touches[0].clientY - mouse.y) * Math.PI) / 180
+        const theta = ((move.x - mouse.x) * Math.PI) / 360
+        const phi = ((move.y - mouse.y) * Math.PI) / 180
 
         for (let i = 0, ii = 8; i < ii; i++) {
-          rotate(cube.vertices[i], center, theta, phi)
+          rotate.execute(render.vertices[i], center, theta, phi)
         }
 
-        mouse.x = e.touches[0].clientX
-        mouse.y = e.touches[0].clientY
+        mouse.x = move.x
+        mouse.y = move.y
 
-        cube.render(svgElement, dx, dy)
+        render.execute(dx, dy)
       }
-    }
+    })
 
-    svgElement.onmousemove = (e) => {
-      if (mouse.down) {
-        const theta = ((e.clientX - mouse.x) * Math.PI) / 360
-        const phi = ((e.clientY - mouse.y) * Math.PI) / 180
+    events.ends.subscribe(() => {
+      mouse.down = false
+      tick()
+    })
 
-        for (let i = 0, ii = 8; i < ii; i++) {
-          rotate(cube.vertices[i], center, theta, phi)
-        }
-
-        mouse.x = e.clientX
-        mouse.y = e.clientY
-
-        cube.render(svgElement, dx, dy)
-      }
-    }
-
-    svgElement.onmouseup = () => {
-      setTimeout(() => {
-        mouse.down = false
-        requestAnimationFrame(tick)
-      }, 200)
-    }
-
-    requestAnimationFrame(tick)
+    tick()
   }
 }
